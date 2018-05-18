@@ -1,0 +1,39 @@
+function [] = DatPulseFinderClassifierExtendedWrapperWrapper_BH(DataSet,RunSetting)
+
+cd '/home/dkhaitan/';
+DataSet='lux10_20140903T1918'
+disp(['Working on ' DataSet ])
+DataPath = ['/home/dkhaitan/LUXData/' DataSet];
+
+FileList = dir([DataPath '*.dat']);
+FileListToRun = 1:length(FileList);
+
+if ~isempty(setdiff(FileListToRun,1:length(FileList)))
+    FileListToRun = intersect(FileListToRun,1:length(FileList));
+    disp('Can not find all requested file. Do only the available files.')
+end
+
+if ~exist(strrep(DataPath,'dat','DatPFC_Extended'),'dir')
+    mkdir(strrep(DataPath,'dat','DatPFC_Extended'));
+end
+
+Setting = XMLReader_framework(RunSetting);
+
+parfor ii = 1:length(FileListToRun)
+    
+    try
+		if exist([DataPath filesep FileList(FileListToRun(ii)).name(1:end-4) '_DatPFC_Extended.mat'],'file') && ~Setting.debug.force_rerun
+			disp(['Found file ' num2str(FileListToRun(ii)) ', skip it.'])
+			continue
+		end
+		disp(ii)
+		[FileOut,ee_merge] = DatPulseFinderClassifierExtendedWrapper_BH(FileList(FileListToRun(ii)).name,DataPath,DataSet,Setting);
+        disp(['File saved: ' FileOut])
+	catch
+		disp(['Can not run file ' num2str(ii)])
+	end	
+end
+
+matlabpool('close')
+
+exit

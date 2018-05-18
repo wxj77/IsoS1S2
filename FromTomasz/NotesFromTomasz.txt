@@ -1,0 +1,13 @@
+Hi Wei, I got the S1 data for you. Just like before, this is a list of S1 areas and you can make a histogram yourself.
+There was a bug last time - the S2 areas I sent you DID NOT include the cut around the band. I included it (renamed) as isolatedS2s_livetime_areas_allS2QualityCuts-fidCuts-nonBandCut_180517.txt
+
+I also added the S2 areas with the band cut as isolatedS2s_livetime_areas_allS2QualityCuts_180517.txt
+
+And of course, here are the S1 areas.
+
+I'm also giving you the files you wanted. process_rq.py is code that read through root rq files and grabbed RQs I wanted and wrote them to numpy files. This used my old root reader which is very bad. I suggest you either read root files as binary or read the matlab files (or read the root into root if you're doing the analysis in root).
+
+analyze_rq_LateCleanupStarted180513.py is the giant script that reads the rq files as well as Dev's spectra, does a bunch of cuts, makes many validation plots.
+
+These are meant to be run from a python session, not from shell command like.
+I highly advise against using this - this is not a good approach especially since the cuts you'll be using are different. 

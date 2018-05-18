@@ -1,0 +1,37 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue May 15 13:27:08 2018
+
+@author: wei
+"""
+
+# this code is to generate the s2 spectrum from Tomasz's analysis
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+workdir="/home/wei/"
+
+S1S2=2
+a = np.loadtxt("isolatedS2s_livetime_areas_allS2QualityCuts-fidCuts_180513.txt")
+lt = a[0]
+S2s =a[1:]
+
+bins=10**(np.linspace(1,4.6))
+a,b = np.histogram(S2s, bins=bins)
+
+fig = plt.figure(1)
+ax = fig.add_subplot(1,1,1)
+
+ax.step(where='mid')
+ax.set_xlabel("S"+str(S1S2)+" [phd]")
+ax.set_ylabel("isolated S"+str(S1S2)+" rate [Hz]")
+ax.set_yscale('log')
+ax.set_xscale('log')
+#ax.set_ylim(0,0.002)
+#ax.text(0.5,0.8, r"$log_{10}y=(%.3f)+(%.3f)*x$"%(best_vals[0], best_vals[1]), horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+ax.legend()
+
+plt.savefig(workdir+"isoS"+str(S1S2)+"rate.png")
+
+

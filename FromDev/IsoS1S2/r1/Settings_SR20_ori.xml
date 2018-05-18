@@ -1,0 +1,67 @@
+<debug>
+	<verbose>1</verbose>
+	<force_rerun>0</force_rerun>
+</debug>
+<wrapper>
+	<RawChunkSize_samples>1e6</RawChunkSize_samples>	
+	<RawChunkIgnoreStarting_samples>5e4</RawChunkIgnoreStarting_samples>	
+	<RawChunkIgnoreEnding_samples>5e4</RawChunkIgnoreEnding_samples>	
+	<RawChunkRollBack_samples>1.5e5</RawChunkRollBack_samples>
+	<max_num_pulses>20000</max_num_pulses>
+	<xml_file_path>/home/dkhaitan/IsolatedS1S2/iqs/</xml_file_path>
+	<save_level>full</save_level>
+</wrapper>
+<dp_module_setting>
+	<sr_version>SR2.0</sr_version>
+	<gs_file_name>gs1523.xml</gs_file_name>
+	<LUXBaselineZen>
+		<run_module>1</run_module>
+	</LUXBaselineZen>
+	<pulse_calibration>
+		<run_module>1</run_module>
+		<pmt_gain_xml>pmt_gains_iq8506.xml</pmt_gain_xml>
+	</pulse_calibration>
+	<LUXSumPOD><run_module>1</run_module></LUXSumPOD>
+	<pulse_finder><run_module>1</run_module></pulse_finder>
+	<pulse_timing><run_module>1</run_module></pulse_timing>	
+	<pulse_quantities><run_module>1</run_module></pulse_quantities>	
+	<pulse_classifier><run_module>1</run_module></pulse_classifier>	
+	<photon_counting><run_module>0</run_module></photon_counting>	
+	<s1s2_pairing><run_module>0</run_module></s1s2_pairing>	
+	<position_reconstruction>
+		<run_module>0</run_module>
+		<lrfs_xml>lrfs_iq8983.xml</lrfs_xml>
+		<pmt_gain_xml>pmt_gains_iq8506.xml</pmt_gain_xml>
+	</position_reconstruction>
+	<position_correction>
+		<run_module>0</run_module>
+		<xy_correction_xml>xy_rec_cor_iq8409.xml</xy_correction_xml>
+	</position_correction>
+	<pulse_area_correction>
+		<run_module>0</run_module>
+		<electron_lifetime_xml_1>electron_lifetime_iq8085.xml</electron_lifetime_xml_1>
+		<electron_lifetime_xml_2>electron_lifetime_iq8095.xml</electron_lifetime_xml_2>
+		<z_dep_s1_xml>z_dep_s1_correction_iq8096.xml</z_dep_s1_xml>
+		<s2_xy_xml>s2_xy_correction_iq8099.xml</s2_xy_xml>
+		<s1_xy_xml>s1_xy_correction_iq8101.xml</s1_xy_xml>
+		<s1_xyz_xml>s1_xyz_correction_iq8169.xml</s1_xyz_xml>
+	</pulse_area_correction>
+	
+	<energy_reconstruction><run_module>0</run_module></energy_reconstruction>	
+	<etrain_rqs><run_module>0</run_module></etrain_rqs>
+	
+	<psd_rqs>
+		<run_module>0</run_module>
+		<setting_xml>PSDRQsSetting.xml</setting_xml>
+	</psd_rqs>
+	
+	<trg_rqs>
+		<run_module>0</run_module>
+		<setting_xml>TrgRQsSetting.xml</setting_xml>
+	</trg_rqs>
+	
+</dp_module_setting>
+
+
+
+

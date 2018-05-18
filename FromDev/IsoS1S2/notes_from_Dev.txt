@@ -1,0 +1,196 @@
+this is the notes for isolated s1 s2 from Dev.
+
+This is about everything I have on IsolatedS1/S2s
+￼￼￼￼￼
+￼
+dkhaitan9:15 AM
+uploaded this file ￼
+IsoS1S2.zip
+58 MB ZipClick to download
+￼
+￼Add Comment
+￼
+dkhaitan9:15 AM
+in the zip you should find the final output files I shared with tomasz
+9:16 AM
+and two folders - one with the iqs needed to do the analysis
+9:16 AM
+and the other containing the code
+9:17 AM
+The main code is in three .mat files Level1_*, Level2.mat, and Level3.mat in the r1 folder
+9:18 AM
+Level1 is the code to start the parallel processing, and writing to disk operation. It calls on Level2 to do the actual processing
+9:18 AM
+Level2 is a hacked together event builder based on the .dat files and it hands each temporary built event file to Level3
+9:19 AM
+Level3 is similar to the data processing framerwork - it calculates the quantities we are interested in and then hands it back to Level1 which writes it to disk
+￼
+weiji9:20 AM
+there are a lot of things in here. which one should I start looking at first
+￼
+dkhaitan9:21 AM
+Start with Level1, then Level2 and finally level3
+9:21 AM
+all in the r1 folder
+9:22 AM
+there are many different level1's but they all do the same thing - they just have different file lists for processing
+9:23 AM
+take a look at the most recent one Level1_sbatch_5.m
+￼
+weiji9:23 AM
+what should I put in as the input and ouput for Level 1(DataSets, RunSettins?)
+￼
+dkhaitan9:24 AM
+that depends on your cluster
+9:24 AM
+take a look at IsolatedS1S2_r3_1.sbatch for the arguments I needed to pass to the rochester cluster
+9:25 AM
+Try playing with line 920 and on in Level1 with some dat files you have
+9:26 AM
+if you want the S1 spect going out higher than a phd you wll have to change the code in 938 and so on
+￼
+weiji9:26 AM
+do you have the intermediate data after your filtering, and before you make the csv files?
+￼
+dkhaitan9:27 AM
+no
+9:27 AM
+this analysis was when .dat files were still locked because of salting
+9:27 AM
+so I had to make it completely opaque as to which dat files I used and was not allowed to save anything except for final results
+￼
+weiji9:30 AM
+could you help me understand the csv files first, I think i may need a long time to digest level 1,2,3,
+9:30 AM
+what is each colomn?
+￼
+dkhaitan9:34 AM
+the file "total_iso_s1_spect_real1.csv" has the isolated S1 spectrum
+9:34 AM
+and the file "total_s1_spect_real1.csv" has the total s1 spectrum
+9:35 AM
+in each file the first column is the dataset, the second is the number of events
+￼
+weiji9:36 AM
+I mean in the csv file what are the numbers represent? there are a lot of 1 and 0 there thata I cannot understand
+￼
+dkhaitan9:37 AM
+the third is the livetime, the fourth is th deatime
+9:37 AM
+aafter that the next 1000 columns are the number of S1 with area between 1 and 101 phe in 0.1 steps
+9:37 AM
+the 0,1,2,s etc. represent the number of detected events in that energy range
+￼
+weiji9:39 AM
+I see, did you average them all with weight/livetime then? some dataset clearly has a higher stat than the other, do you take that into account?
+￼
+dkhaitan9:40 AM
+when doing the final S1 spectrum for R4 we did weight by the live/deadtime
+￼
+weiji9:41 AM
+why do you need to weigh it by deadtime?
+￼
+dkhaitan9:42 AM
+you dont need to
+9:42 AM
+you can correct for deadtime if you wanted to
+9:42 AM
+both methods should give the same answers
+￼
+weiji9:47 AM
+what is the range for s2 spectrum?
+￼
+dkhaitan9:48 AM
+10-1010 in steps of 1
+9:49 AM
+I think, gotta check the code
+￼
+weiji9:50 AM
+do you have the summary histogram(rate vs s1 size [phd]) for this spreedsheet somewhere?
+￼
+dkhaitan9:52 AM
+I dont think so
+9:52 AM
+i do
+￼
+weiji9:53 AM
+is the counts in the spreadsheet, counts in livetime. so taht if I scale by livetime, I get the frequency of s1  in [1,101 ]phd range?
+￼
+dkhaitan9:54 AM
+thats the idea
+￼
+dkhaitan9:54 AM
+uploaded this image: 20160630_IsolatedS2Rate.jpg ￼
+￼
+￼
+￼Add Comment
+￼
+dkhaitan9:54 AM
+uploaded this image: 20160630_IsolatedS1Rate.jpg ￼
+￼
+￼
+￼Add Comment
+￼
+dkhaitan9:54 AM
+uploaded this image: 20160623_IsolatedS1Rate_spectrum_error.jpg ￼
+￼
+￼
+￼Add Comment
+￼
+dkhaitan9:54 AM
+uploaded this image: 20160623_IsolatedS1Rate_spectrum_by_date.jpg ￼
+￼
+￼
+￼Add Comment
+￼
+dkhaitan9:55 AM
+uploaded this image: 20160623_IsolatedS1Rate_spectrum.jpg ￼
+￼
+￼
+￼Add Comment
+￼
+dkhaitan9:55 AM
+uploaded this image: 20160623_IsolatedS2Rate_spectrum_error.jpg ￼
+￼
+￼
+￼Add Comment
+￼
+dkhaitan9:55 AM
+uploaded this image: 20160623_IsolatedS2Rate_spectrum_by_date.jpg ￼
+￼
+￼
+￼Add Comment
+￼
+dkhaitan9:55 AM
+uploaded this image: 20160623_IsolatedS2Rate_spectrum.jpg ￼
+￼
+￼
+￼Add Comment
+￼
+dkhaitan9:55 AM
+sorry the s2 range is is 1-10001 in steps of 10 (edited)
+￼
+weiji9:58 AM
+" 20160623_IsolatedS1Rate_spectrum.jpg ￼" is what I think I want. I guess it is too much to ask whether you have the number of each point. what is the bump at 15 phe do you know?
+￼
+dkhaitan10:00 AM
+No idea
+10:01 AM
+The numbers are the average from the spreadsheet
+10:01 AM
+I think tomasz discounted that peak from his fit spectrum because he thought it was misidentified single extracted electrons
+￼
+weiji10:04 AM
+bu se is much longer than s1, do you believe the se could contaimanate you s1 spectrum? 
+I will need some time to digest the level 1,2,3. shall we talk later this week. Are you active on slack in the rest of the week?
+￼
+dkhaitan10:06 AM
+I dont know, i havent looked into it.
+10:06 AM
+Yeah ill be on slack let me know what questions you have
+￼
+weiji10:37 AM
+I have an additional question, do you happen to have the numbers of the s1 s2 trigger efficiency curve?
+￼
+dkhaitan10:40 AM
+No i do not

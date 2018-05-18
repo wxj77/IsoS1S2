@@ -1,0 +1,30 @@
+function [isolated_s1s,isolated_s2s,isolated_s1s_pulse_area,isolated_s2s_pulse_area] = test(ee_merge)
+isolated_s1s=[];
+isolated_s2s=[];
+isolated_s1s_pulse_area=[];
+isolated_s2s_pulse_area=[];
+
+for jj = 1:length(ee_merge.rqs.pulse_start_samples)
+	delta_t_p1 =50001;
+	delta_t_m1 =50001;
+	if jj ==1
+		delta_t_p1 =  ee_merge.rqs.pulse_start_samples(jj+1) -  ee_merge.rqs.pulse_start_samples(jj);
+	
+	elseif jj ==length( ee_merge.rqs.pulse_start_samples)
+		delta_t_m1 =  ee_merge.rqs.pulse_start_samples(jj) -  ee_merge.rqs.pulse_start_samples(jj-1);
+	else
+		delta_t_p1 =  ee_merge.rqs.pulse_start_samples(jj+1) -  ee_merge.rqs.pulse_start_samples(jj);
+		delta_t_m1 =  ee_merge.rqs.pulse_start_samples(jj) -  ee_merge.rqs.pulse_start_samples(jj-1);
+		if ((delta_t_p1 >50000) && (delta_t_m1 <50000))
+			if  (ee_merge.rqs.pulse_classification(jj) == 1)
+				isolated_s1s = [isolated_s1s, jj];
+				isolated_s1s_pulse_area=[isolated_s1s_pulse_area, ee_merge.rqs.pulse_area_phe(jj)];
+			end
+			if  ee_merge.rqs.pulse_classification(jj) == 3
+				isolated_s2s = [isolated_s2s, jj];
+				isolated_s2s_pulse_area=[isolated_s2s_pulse_area, ee_merge.rqs.pulse_area_phe(jj)];
+			end
+		end
+	end
+end
+end

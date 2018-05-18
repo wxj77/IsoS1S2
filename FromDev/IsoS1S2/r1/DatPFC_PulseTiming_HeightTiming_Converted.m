@@ -1,0 +1,268 @@
+function ee = DatPFC_PulseTiming_HeightTiming_Converted(ee,XML_Settings,Debug)
+if ~exist('Debug','var')
+    Debug = 0;
+end
+pulse_event_size = [XML_Settings.max_num_pulses 1];
+
+%% Excerpt from PulseTiming_BasicSet
+% rqs returned by this module
+ee.rqs.aft_t0_samples               = nan(pulse_event_size);
+ee.rqs.aft_t05_samples              = nan(pulse_event_size);
+ee.rqs.aft_tlx_samples              = nan(pulse_event_size);
+ee.rqs.aft_t25_samples              = nan(pulse_event_size);
+ee.rqs.aft_t1_samples               = nan(pulse_event_size);
+ee.rqs.aft_t75_samples              = nan(pulse_event_size);
+ee.rqs.aft_trx_samples              = nan(pulse_event_size);
+ee.rqs.aft_t95_samples              = nan(pulse_event_size);
+ee.rqs.aft_t2_samples               = nan(pulse_event_size);
+
+ee.rqs.hft_t0_samples               = nan(pulse_event_size);
+ee.rqs.hft_t10l_samples             = nan(pulse_event_size);
+ee.rqs.hft_t50l_samples             = nan(pulse_event_size);
+ee.rqs.hft_t1_samples               = nan(pulse_event_size);
+ee.rqs.hft_t50r_samples             = nan(pulse_event_size);
+ee.rqs.hft_t10r_samples             = nan(pulse_event_size);
+ee.rqs.hft_t2_samples               = nan(pulse_event_size);
+
+
+    %% Compute RQs
+
+    %fprintf('\n');
+
+try
+    ee.rqs.event_timestamp_samples = [ee.timestamp];
+
+    % Check if fields exist and has data
+    if isfield(ee,'sumpod_data_phe_per_sample') && ee.empty == 0
+        loop_max = min([sum(isfinite(ee.rqs.index_kept_sumpods(:,1))) XML_Settings.max_num_pulses]);
+        if loop_max == 0
+            if Debug
+                disp('Fail to run pulse timings.')
+            end
+            ee.info.PulseTimingSuccess = 0;
+            ee.info.PulseTimingError = 'No pulse found';
+            return
+        end
+        % for every pulse (NOT pod)
+        for pp = 1:loop_max
+            %dis('pp=%d,evt=%d ... index_kept=%d\n',pp,evt,dp.index_kept_sumpods(pp,evt))
+            % -1 and +1 signs are needed to get the right time cut
+            %pulse_cut = inrange(cvt_struct(evt).sumpod_time_samples,dp.pulse_start_samples(pp,evt)-1,dp.pulse_end_samples(pp,evt)+1);
+
+            % use explicit range cuts, not "inrange" function
+            pulse_cut = (ee.sumpod_time_samples >= ee.rqs.pulse_start_samples(pp,1)) ...
+                      & (ee.sumpod_time_samples <= ee.rqs.pulse_end_samples(pp,1));
+            pulse_data_phe = ee.sumpod_data_phe_per_sample(pulse_cut);
+
+            %->>>> This should around line 159 in .cpp
+
+            pstart = ee.rqs.pulse_start_samples(pp,1);
+            pend   = ee.rqs.pulse_end_samples(pp,1);
+
+            threshold =0;
+            for ch = 1:122
+                chch = ee.ch(ch);
+                %tmp = FindPeakStd(chch,pstart,pend);
+                tmp = DatPFC_PulseTiming_HeightTiming_Converted_FindPeakStd(chch,pstart,pend);
+                threshold = threshold +  tmp*tmp;
+            end
+            threshold = sqrt(threshold);
+
+            %Start do height-based ->>>>>>>>>>>>> Line 175 in .cpp which call
+            %stuffs in Timing.h
+            %timing = HeightTiming(pulse_data_phe,threshold);
+            timing = DatPFC_PulseTiming_HeightTiming_Converted_HeightTiming(pulse_data_phe,threshold);
+
+            ee.rqs.hft_t0_samples(pp,1)    = timing(1) + pstart;
+            ee.rqs.hft_t10l_samples(pp,1)  = timing(2) + pstart;
+            ee.rqs.hft_t50l_samples(pp,1)  = timing(3) + pstart;
+            ee.rqs.hft_t1_samples(pp,1)    = timing(4) + pstart;
+            ee.rqs.hft_t50r_samples(pp,1)  = timing(5) + pstart;
+            ee.rqs.hft_t10r_samples(pp,1)  = timing(6) + pstart;
+            ee.rqs.hft_t2_samples(pp,1)    = timing(7) + pstart;
+
+            %timing = AreaTiming(pulse_data_phe);
+            timing = DatPFC_PulseTiming_HeightTiming_Converted_AreaTiming(pulse_data_phe);
+            ee.rqs.aft_t0_samples(pp,1)   = timing(1) + pstart;
+            ee.rqs.aft_t05_samples(pp,1)   = timing(2) + pstart;
+            ee.rqs.aft_tlx_samples(pp,1)   = timing(3) + pstart;
+            ee.rqs.aft_t25_samples(pp,1)   = timing(4) + pstart;
+            ee.rqs.aft_t1_samples(pp,1)   = timing(5) + pstart;
+            ee.rqs.aft_t75_samples(pp,1)   = timing(6) + pstart;
+            ee.rqs.aft_trx_samples(pp,1)   = timing(7) + pstart;
+            ee.rqs.aft_t95_samples(pp,1)   = timing(8) + pstart;
+            ee.rqs.aft_t2_samples(pp,1)   = timing(9) + pstart;
+
+
+
+        %{    
+
+               % Pulse area fractional timing
+        if numel(pulse_data_phe) > 0
+               fullBoxCsum(1) = pulse_data_phe(1); % Calculate cumulative area
+               pulse_length = ee.rqs.pulse_end_samples(pp,1) - ee.rqs.pulse_start_samples(pp,1)+1; %pulse_length gives number of final entry in array
+               for tt=1:pulse_length-1
+                  if tt<numel(pulse_data_phe) %
+                      fullBoxCsum(tt+1) = fullBoxCsum(tt) + pulse_data_phe(tt+1);
+                  else 
+                      fullBoxCsum(tt+1) = fullBoxCsum(tt);
+                  end
+               end
+
+               %Initiliaze timings & flags
+               t0  = 1;
+               tlx = 1;
+               t1  = 1;
+               trx = 1;
+               t2  = 1;
+
+               fflag_t0  = 0;
+               fflag_tlx = 0;
+               fflag_t1  = 0;
+               fflag_trx = 0;
+               fflag_t2  = 0;
+
+
+
+               for tt = 1:pulse_length
+                  if fullBoxCsum(tt) >= XML_Settings.edgeFraction*fullBoxCsum(pulse_length-1) && ~fflag_t0
+                      t0 = tt;  
+                      fflag_t0 = 1;
+                  elseif fullBoxCsum(tt) >= XML_Settings.txFraction*fullBoxCsum(pulse_length-1) && ~fflag_tlx 
+                     tlx = tt;
+                     fflag_tlx = 1;	    	       			
+                  elseif fullBoxCsum(tt) >= 0.50*fullBoxCsum(pulse_length-1) && ~fflag_t1
+                     t1 = tt;
+                     fflag_t1 = 1;	
+                  elseif fullBoxCsum(tt) >= (1-XML_Settings.txFraction)*fullBoxCsum(pulse_length-1) && ~fflag_trx
+                     trx = tt;
+                     fflag_trx = 1;		
+                  elseif fullBoxCsum(tt) >= (1-XML_Settings.edgeFraction)*fullBoxCsum(pulse_length-1) && ~fflag_t2 
+                     t2 = tt;
+                     fflag_t2 = 1;   
+                  end
+               end
+
+               % Record values
+               ee.rqs.aft_t0_samples(pp,1)  = t0  + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.aft_tlx_samples(pp,1) = tlx + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.aft_t1_samples(pp,1)  = t1  + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.aft_trx_samples(pp,1) = trx + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.aft_t2_samples(pp,1)  = t2  + ee.rqs.pulse_start_samples(pp,1)-1;
+
+
+               % Following added as a fix for when conditions for trx and t2 arent satisfied 
+               % before end of pulse (generally 3 sample pulses)
+               if ee.rqs.aft_trx_samples(pp,1) < ee.rqs.aft_t1_samples(pp,1)
+                  ee.rqs.aft_trx_samples(pp,1) = ee.rqs.pulse_end_samples(pp,1);
+               end
+               if ee.rqs.aft_t2_samples(pp,1) < ee.rqs.aft_t1_samples(pp,1)
+                  ee.rqs.aft_t2_samples(pp,1) = ee.rqs.pulse_end_samples(pp,1);
+               end
+
+
+
+               % Height Fractional Timing
+               % First identify the highest point in the pulse
+               maxValue = 0;
+               maxIndex = 0;
+               for ii = 1:pulse_length %changed from pulse_length-1 so looks to the very end of pulse
+                   if ii <= numel(pulse_data_phe)
+                     if pulse_data_phe(ii) > maxValue
+                        maxValue = pulse_data_phe(ii);
+                        maxIndex = ii;
+                     end
+                   else
+                      break
+                   end
+               end
+
+
+
+               % Hft initiliazation	    
+               t0   = 1;
+               t10l = 1;
+               t50l = 1;
+               t1   = maxIndex;
+               t50r = 1;
+               t10r = 1;
+               t2   = 1;
+
+
+               hflag_t0   = 0;
+               hflag_t10l = 0;
+               hflag_t50l = 0;
+               hflag_t1   = 0;
+               hflag_t50r = 0;
+               hflag_t10r = 0;
+               hflag_t2   = 0;
+
+               % Look below peak height
+               for ii=maxIndex:-1:1
+                  if ii <= numel(pulse_data_phe)
+                     if pulse_data_phe(ii) >= maxValue*0.5 && hflag_t10l ~= 1 && hflag_t0 ~= 1   % 50% rising edge
+                        t50l = ii;
+                        hflag_t50l = 1;
+                     end
+                     if pulse_data_phe(ii) >= maxValue*0.1 && hflag_t0 ~= 1  % 10% rising edge
+                        t10l = ii;
+                        hflag_t10l = 1;
+                     end 
+                     if pulse_data_phe(ii) <= 0
+                        t0 = ii;                            % 0% rising edge
+                        hflag_t0 = 1;
+                     end
+                  end
+               end
+
+               % Look above peak height
+               for ii=maxIndex:pulse_length
+                  if ii <= numel(pulse_data_phe)
+                     if pulse_data_phe(ii) >= maxValue*0.5 && hflag_t10r ~= 1 && hflag_t2 ~= 1  % 50% falling edge
+                        t50r = ii;
+                        hflag_t50r = 1;
+                     end
+                     if pulse_data_phe(ii) >= maxValue*0.1 && hflag_t2 ~= 1  % 10% falling edge
+                        t10r = ii;
+                        hflag_t10r = 1;
+                     end          
+                     if pulse_data_phe(ii) <= 0  || ii == pulse_length
+                        t2 = ii;
+                        hflag_t2 = 1; 
+                     end
+
+                  else
+                      t2 = pulse_length;
+                  end 
+               end
+
+               % Record hfts
+               ee.rqs.hft_t0_samples(pp,1)   = t0   + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.hft_t10l_samples(pp,1) = t10l + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.hft_t50l_samples(pp,1) = t50l + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.hft_t1_samples(pp,1)   = t1   + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.hft_t50r_samples(pp,1) = t50r + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.hft_t10r_samples(pp,1) = t10r + ee.rqs.pulse_start_samples(pp,1)-1;
+               ee.rqs.hft_t2_samples(pp,1)   = t2   + ee.rqs.pulse_start_samples(pp,1)-1;
+        end      
+            %}
+        end % for pulse pp
+        ee.info.PulseTimingSuccess = 1;
+        ee.info.PulseTimingError = '';
+    else
+        if Debug
+            disp('Fail to run pulse timings.')
+        end
+        ee.info.PulseTimingSuccess = 0;
+        ee.info.PulseTimingError = ee.info.SumPODError;   
+    end % fi sumpod
+    
+catch exception
+    if Debug
+        disp('Fail to run pulse timings.')
+    end
+    ee.info.PulseTimingSuccess = 0;
+    ee.info.PulseTimingError = exception.identifier;
+    
+end
+
